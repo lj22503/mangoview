@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8003'
+﻿const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8003'
+const isDev = process.env.NODE_ENV === 'development'
 
 interface ApiResponse<T> {
   code: number
@@ -14,10 +15,18 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
   })
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status}`)
+    const msg = `API error: ${res.status} ${res.statusText} [${endpoint}]`
+    if (isDev) console.warn(msg)
+    throw new Error(msg)
   }
 
-  const json: ApiResponse<T> = await res.json()
+  let json: ApiResponse<T>
+  try {
+    json = await res.json()
+  } catch {
+    throw new Error(`Invalid JSON response from ${endpoint}`)
+  }
+
   return json.data
 }
 
@@ -138,7 +147,7 @@ export async function postPortfolioGenerate(data: PortfolioRequest): Promise<Por
   })
 }
 
-// === Analysis API === 真实引擎对接
+// === Analysis API ===
 
 export interface EngineCycleResponse {
   cycle_position: {
