@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.so
@@ -40,3 +40,4 @@ data/*.db
 
 # Test files
 test_*.py
+
