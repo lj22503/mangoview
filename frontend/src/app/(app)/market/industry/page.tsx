@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { getIndustries, getMacroData, IndustryData, MacroData } from '@/lib/api'

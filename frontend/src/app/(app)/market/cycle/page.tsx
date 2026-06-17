@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { getMacroData, MacroData } from '@/lib/api'
@@ -70,16 +70,17 @@ export default function CyclePage() {
     },
   ]
 
+  // macroRows: 仅展示 API 实际返回的指标，其余标注「数据待接入」
   const macroRows = [
-    { key: 'GDP', label: 'GDP 实际增速', explain: '经济在不在长，5% 算正常' },
-    { key: 'CPI', label: 'CPI', explain: '物价涨了没' },
-    { key: 'PPI', label: 'PPI', explain: '企业好不好过，负数意味原材料便宜但利润薄' },
-    { key: 'PMI', label: '制造业 PMI', explain: '制造业温度计，50 以上 = 景气' },
-    { key: 'M2', label: 'M2 增速', explain: '市场上钱多不多' },
-    { key: '社融', label: '社融增量', explain: '借钱意愿强不强' },
-    { key: '社零', label: '社零增速', explain: '老百姓花不花钱' },
-    { key: '出口', label: '出口总额', explain: '外贸这块卖了多少' },
-    { key: '固定资产投资', label: '固投增速', explain: '工厂/基建/地产的投资热度' },
+    { key: 'GDP', label: 'GDP 实际增速', explain: '经济在不在长，5% 算正常', available: true },
+    { key: 'CPI', label: 'CPI', explain: '物价涨了没', available: true },
+    { key: 'PPI', label: 'PPI', explain: '企业好不好过，负数意味原材料便宜但利润薄', available: true },
+    { key: 'PMI', label: '制造业 PMI', explain: '制造业温度计，50 以上 = 景气', available: true },
+    { key: 'M2', label: 'M2 增速', explain: '市场上钱多不多', available: false },
+    { key: '社融', label: '社融增量', explain: '借钱意愿强不强', available: false },
+    { key: '社零', label: '社零增速', explain: '老百姓花不花钱', available: false },
+    { key: '出口', label: '出口总额', explain: '外贸这块卖了多少', available: false },
+    { key: '固定资产投资', label: '固投增速', explain: '工厂/基建/地产的投资热度', available: false },
   ]
 
   return (
@@ -127,13 +128,13 @@ export default function CyclePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {macroRows.map(({ key, label, explain }) => {
+                    {macroRows.map(({ key, label, explain, available }) => {
                       const ind = find(key)
                       return (
                         <tr key={key} className="border-t border-border-light">
                           <td className="px-5 py-3 text-sm font-medium text-text-primary">{label}</td>
                           <td className="px-5 py-3 text-right text-sm text-text-primary font-mono">
-                            {ind ? ind.current : '暂无'}
+                            {available === false ? (<span className="text-text-muted">待接入</span>) : ind ? ind.current : '暂无'}
                           </td>
                           <td className="px-5 py-3 text-center text-sm">
                             {ind ? (

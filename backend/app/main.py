@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
@@ -41,7 +41,7 @@ async def health_check():
 @app.on_event("startup")
 async def startup_event():
     # 确保数据目录存在
-    os.makedirs("C:/tmp/mangoview/data", exist_ok=True)
+    os.makedirs(os.environ.get("MANGOVIEW_DATA_DIR", "data"), exist_ok=True)
     # 初始化数据库
     init_db()
 

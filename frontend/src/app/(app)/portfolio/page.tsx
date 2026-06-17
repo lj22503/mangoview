@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { postPortfolioGenerate, PortfolioData } from '@/lib/api'
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
                           {key === 'equity' ? '股票' : key === 'bond' ? '债券' : key === 'gold' ? '黄金' : '现金'}
                         </span>
                         <span className={`text-lg font-bold font-mono ${val.locked ? 'text-text-muted' : 'text-mango-600'}`}>
-                          {val.locked ? '--- ' + val.display : val.display}
+                          {val.display}
                         </span>
                       </div>
                     ))}

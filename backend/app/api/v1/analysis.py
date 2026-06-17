@@ -1,4 +1,4 @@
-"""
+﻿"""
 Mangoview 分析 API — 对接 core/engine 真实分析引擎
 
 数据流：
@@ -273,8 +273,10 @@ async def analyze_cycle_locator(req: CycleLocatorRequest):
         step6 = result.get("results", {}).get(6, {})
         exit_signals = step6.get("exit_signals", [])
 
-        # 当前经济周期
-        current_phase = "扩张"  # 从 cycle_phase 提取
+        # 当前经济周期（取引擎实际判断结果，无结果时回退到本地计算）
+        current_phase = cycle_phase
+        if not current_phase or current_phase == "未知":
+            current_phase, _, _ = determine_economic_cycle(macro_data)
 
         cycle_position = map_cycle_phase_to_four_cycles(current_phase)
         allocation = get_allocation_suggestion(current_phase, "balanced")

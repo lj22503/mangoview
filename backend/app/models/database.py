@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, Text, Index
+﻿from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, Text, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+import os
 
 Base = declarative_base()
 
@@ -126,7 +127,10 @@ class NorthMoneyFlow(Base):
 
 # === DB Helpers ===
 
-DATABASE_URL = "sqlite:///C:/tmp/mangoview/data/mangoview.db"
+# 数据库路径：优先从环境变量，回退到项目 data 目录
+DATA_DIR = os.environ.get("MANGOVIEW_DATA_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "data"))
+os.makedirs(DATA_DIR, exist_ok=True)
+DATABASE_URL = os.environ.get("MANGOVIEW_DATABASE_URL", f"sqlite:///{DATA_DIR}/mangoview.db")
 
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
