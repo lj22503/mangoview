@@ -1,7 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
-app = FastAPI(title="MangoView API")
+from app.api.v1 import market, tools, portfolio, reports, analysis
+from app.models.database import init_db
+
+app = FastAPI(
+    title="MangoView API",
+    description="基于经典框架的 SaaS 投资辅助工具 API",
+    version="0.1.0"
+)
 
 # CORS 配置
 app.add_middleware(
@@ -12,52 +20,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 注册路由
+app.include_router(market.router)
+app.include_router(tools.router)
+app.include_router(portfolio.router)
+app.include_router(reports.router)
+app.include_router(analysis.router)
+
+
 @app.get("/")
 async def root():
-    return {"message": "MangoView API is running"}
+    return {"message": "MangoView API is running", "version": "0.1.0"}
+
 
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "service": "mangoview-api"}
 
-@app.get("/api/v1/market/macro")
-async def get_macro_data():
-    """获取宏观数据"""
-    return {
-        "code": 0,
-        "data": {
-            "indicators": [
-                {
-                    "name": "PMI",
-                    "current": 50.8,
-                    "previous": 50.2,
-                    "direction": "up",
-                    "percentile": 65.2,
-                    "date": "2026-05-31",
-                    "source": "国家统计局"
-                },
-                {
-                    "name": "CPI",
-                    "current": 102.3,
-                    "previous": 102.1,
-                    "direction": "up",
-                    "percentile": 58.5,
-                    "date": "2026-05-31",
-                    "source": "国家统计局"
-                },
-                {
-                    "name": "GDP",
-                    "current": 5.2,
-                    "previous": 5.0,
-                    "direction": "up",
-                    "percentile": 62.0,
-                    "date": "2026-Q1",
-                    "source": "国家统计局"
-                }
-            ],
-            "updated_at": "2026-06-03T06:25:00Z"
-        }
-    }
+
+@app.on_event("startup")
+async def startup_event():
+    # 确保数据目录存在
+    os.makedirs("C:/tmp/mangoview/data", exist_ok=True)
+    # 初始化数据库
+    init_db()
+
 
 if __name__ == "__main__":
     import uvicorn
