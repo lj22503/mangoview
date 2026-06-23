@@ -1,52 +1,97 @@
-from fastapi import APIRouter
+﻿from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 from datetime import datetime
+
+from ...models.database import get_db, Report
+from ...services.report_service import generate_report
 
 router = APIRouter(prefix="/v1/reports", tags=["reports"])
 
 
 @router.get("")
-async def get_reports(type: str = "daily", page: int = 1, limit: int = 10):
+async def list_reports(
+    type: str = Query("daily"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
     """获取报告列表"""
-
-    # Mock data - 实际应从数据库读取
-    reports = []
-
-    if type == "daily":
-        for i in range(5):
-            reports.append({
-                "id": f"RPT{i:03d}",
-                "type": "daily",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "title": f"{datetime.now().strftime('%Y-%m-%d')} 日报",
-                "summary": "大盘情绪中性偏多，北向资金净流入，行业轮动加速。",
-                "is_locked": False
-            })
-    elif type == "weekly":
-        for i in range(3):
-            reports.append({
-                "id": f"WRPT{i:03d}",
-                "type": "weekly",
-                "date": "2026-06-01",
-                "title": f"2026 年第 {i+22} 周周报",
-                "summary": "本周市场震荡上行，消费板块表现强势，科技板块分化。",
-                "is_locked": False
-            })
-    else:
-        reports.append({
-            "id": "MRPT001",
-            "type": "monthly",
-            "date": "2026-05-31",
-            "title": "2026 年 5 月月报",
-            "summary": "5月市场回顾：宏观数据边际改善，行业估值分化。",
-            "is_locked": True
-        })
+    query = db.query(Report).filter(Report.type == type)
+    total = query.count()
+    reports = (
+        query.order_by(Report.report_date.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
 
     return {
         "code": 0,
         "data": {
-            "reports": reports,
-            "total": len(reports),
+            "reports": [
+                {
+                    "id": r.id,
+                    "type": r.type,
+                    "report_date": str(r.report_date),
+                    "title": r.title,
+                    "summary": r.summary,
+                    "is_locked": bool(r.is_locked),
+                    "created_at": r.created_at.isoformat() if r.created_at else None,
+                }
+                for r in reports
+            ],
+            "total": total,
             "page": page,
-            "limit": limit
-        }
+            "limit": limit,
+        },
     }
+
+
+@router.get("/{report_id}")
+async def get_report_detail(
+    report_id: int,
+    is_premium: bool = Query(False),
+    db: Session = Depends(get_db),
+):
+    """获取报告详情 — 付费用户返回全文"""
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        return {"code": 404, "message": "报告不存在"}
+
+    return {
+        "code": 0,
+        "data": {
+            "report": {
+                "id": report.id,
+                "type": report.type,
+                "report_date": str(report.report_date),
+                "title": report.title,
+                "summary": report.summary,
+                "full_content": report.full_content if is_premium else None,
+                "is_locked": bool(report.is_locked),
+                "created_at": report.created_at.isoformat() if report.created_at else None,
+            }
+        },
+    }
+
+
+@router.post("/generate")
+async def trigger_generate(
+    type: str = Query("daily"),
+    db: Session = Depends(get_db),
+):
+    """手动触发生成报告"""
+    if type not in ("daily", "weekly", "monthly"):
+        return {"code": 400, "message": "不支持的报告类型，可选 daily/weekly/monthly"}
+    try:
+        report = generate_report(type, db)
+        return {
+            "code": 0,
+            "data": {
+                "report_id": report.id,
+                "type": report.type,
+                "title": report.title,
+            },
+        }
+    except Exception as e:
+        return {"code": 500, "message": f"生成失败: {str(e)}"}

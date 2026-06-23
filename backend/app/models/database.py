@@ -1,4 +1,4 @@
-﻿from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, Text, Index
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, Text, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -123,6 +123,21 @@ class NorthMoneyFlow(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (Index('idx_north_money_flow', 'date'),)
+
+
+class Report(Base):
+    __tablename__ = 'reports'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type = Column(String(20), nullable=False)  # daily / weekly / monthly
+    report_date = Column(Date, nullable=False)
+    title = Column(String(200))
+    summary = Column(Text)
+    full_content = Column(Text)
+    is_locked = Column(Integer, default=0)  # SQLite no native bool, 0=False, 1=True
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (Index('idx_reports_type_date', 'type', 'report_date'),)
 
 
 # === DB Helpers ===

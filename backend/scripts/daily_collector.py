@@ -228,9 +228,20 @@ def main():
     except Exception as e:
         print(f"  宏观指标: 失败 - {e}")
 
+
+    # ── 采集完成后自动生成日报 ──
+    from app.services.report_service import generate_report
+    db2 = SessionLocal()
+    try:
+        report = generate_report("daily", db2)
+        print(f"  日报已生成: id={report.id}, title={report.title}")
+    except Exception as e:
+        print(f"  日报生成失败: {e}")
+    finally:
+        db2.close()
+
     db.close()
     print(f"[{datetime.now().isoformat()}] 采集完成")
 
 
-if __name__ == '__main__':
     main()
