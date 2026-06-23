@@ -32,12 +32,10 @@ Thumbs.db
 .env.local
 .env.production
 
-# Cloudflare
-*.json
+# Cache/Generated JSON
+backend/core/data/cache/*.json
+backend/core/engine/.pytest_cache/
+.pytest_cache/
 
 # Data (SQLite)
 data/*.db
-
-# Test files
-test_*.py
-

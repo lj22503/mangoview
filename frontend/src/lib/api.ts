@@ -85,40 +85,6 @@ export async function getIndustries(): Promise<IndustryData> {
   return fetchApi<IndustryData>('/v1/market/industries')
 }
 
-// === Tools API ===
-
-export interface CyclePositionRequest {
-  indicators: {
-    pmi?: number
-    ppi?: number
-    fixed_asset_investment?: number
-    new_start_area?: number
-  }
-}
-
-export interface CyclePositionData {
-  cycle_position: {
-    kitchin: string
-    juglar: string
-    kuznets: string
-    kondratieff: string
-  }
-  historical_comparison: { period: string; similarity: number }[]
-  allocation_suggestion: {
-    equity: string
-    bond: string
-    gold: string
-    cash: string
-  }
-}
-
-export async function postCycleLocator(data: CyclePositionRequest): Promise<CyclePositionData> {
-  return fetchApi<CyclePositionData>('/v1/tools/cycle-locator', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
-}
-
 // === Portfolio API ===
 
 export interface PortfolioRequest {

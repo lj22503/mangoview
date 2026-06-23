@@ -1,4 +1,13 @@
-﻿from fastapi import FastAPI
+"""MangoView API — 应用入口"""
+import sys
+import os
+
+_BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, _BACKEND_ROOT)
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
@@ -11,11 +20,16 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# CORS 配置
+# CORS 配置 — 环境变量 CORS_ORIGINS（逗号分隔），默认本地开发
+CORS_ORIGINS = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[origin.strip() for origin in CORS_ORIGINS if origin.strip()],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

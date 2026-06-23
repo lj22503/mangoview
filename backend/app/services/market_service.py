@@ -1,5 +1,6 @@
 """市场数据服务 - DB优先，降级到akshare"""
 import threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 import math
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -7,7 +8,8 @@ import akshare as ak
 import pandas as pd
 
 from ..models.database import (
-    MacroIndicator, NorthMoneyFlow, get_db
+    MacroIndicator, NorthMoneyFlow, IndustryInfo, IndustryFinancials,
+    IndustryValuation
 )
 
 
@@ -21,24 +23,18 @@ def safe_float(val, default=0.0):
         return default
 
 
+
+# 全局线程池（复用，避免遗留 daemon 线程）
+_executor = ThreadPoolExecutor(max_workers=2)
+
 def fetch_with_timeout(func, timeout=5, default=None):
-    result = [default]
-    error = [None]
-
-    def target():
-        try:
-            result[0] = func()
-        except Exception as e:
-            error[0] = e
-
-    t = threading.Thread(target=target, daemon=True)
-    t.start()
-    t.join(timeout=timeout)
-    if t.is_alive():
+    future = _executor.submit(func)
+    try:
+        return future.result(timeout=timeout), False
+    except FutureTimeoutError:
         return default, True
-    if error[0]:
+    except Exception:
         return default, False
-    return result[0], False
 
 
 def fetch_macro_indicators(db: Session) -> dict:
@@ -111,11 +107,11 @@ def fetch_macro_indicators(db: Session) -> dict:
     if not indicators:
         indicators = [
             {"name": "PMI", "current": 50.0, "previous": 49.8, "direction": "up",
-             "percentile": 60.0, "date": datetime.now().strftime("%Y-%m-%d"), "source": "国家统计局"},
+             "percentile": 60.0, "date": datetime.now().strftime("%Y-%m-%d"), "source": "国家统计局（估算参考，数据源暂不可用）"},
             {"name": "CPI", "current": 102.3, "previous": 102.1, "direction": "up",
-             "percentile": 58.0, "date": datetime.now().strftime("%Y-%m-%d"), "source": "国家统计局"},
+             "percentile": 58.0, "date": datetime.now().strftime("%Y-%m-%d"), "source": "国家统计局（估算参考，数据源暂不可用）"},
             {"name": "GDP", "current": 5.2, "previous": 5.0, "direction": "up",
-             "percentile": 62.0, "date": "2026-Q1", "source": "国家统计局"},
+             "percentile": 62.0, "date": "2026-Q1", "source": "国家统计局（估算参考，数据源暂不可用）"},
         ]
 
     return {"indicators": indicators, "updated_at": datetime.now().isoformat()}
@@ -175,7 +171,31 @@ def fetch_north_money(db: Session) -> dict:
 
 
 def fetch_industries(db: Session) -> dict:
-    """行业板块数据 - akshare被封，直接返回说明"""
+    """行业板块数据 — DB 优先，无数据时返回硬编码降级数据"""
+    # 1. DB 优先 — 查询 industry_info 和最新一期财务数据
+    db_industries = db.query(IndustryInfo).all()
+    if db_industries:
+        result = []
+        for info in db_industries:
+            fin = db.query(IndustryFinancials).filter(
+                IndustryFinancials.industry_code == info.industry_code
+            ).order_by(IndustryFinancials.year.desc(), IndustryFinancials.quarter.desc()).first()
+            val = db.query(IndustryValuation).filter(
+                IndustryValuation.industry_code == info.industry_code
+            ).order_by(IndustryValuation.stat_date.desc()).first()
+            result.append({
+                "code": info.industry_code,
+                "name": info.industry_name,
+                "cycle_stage": info.cycle_stage or "未知",
+                "penetration": info.penetration or 0.0,
+                "cr3": info.cr3 or 0.0,
+                "pe_percentile": val.pe_percentile if val else 0.0,
+                "net_profit_growth": fin.net_profit_growth if fin else 0.0,
+                "weight": round(1.0 / len(db_industries), 4)
+            })
+        return {"industries": result, "updated_at": datetime.now().isoformat()}
+
+    # 2. 降级 — 数据库无数据时返回硬编码数据
     industries = [
         {"code": "BK0001", "name": "消费", "cycle_stage": "复苏早期",
          "penetration": 0.75, "cr3": 0.42, "pe_percentile": 28.5,

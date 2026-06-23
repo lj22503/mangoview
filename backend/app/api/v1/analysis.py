@@ -1,4 +1,4 @@
-﻿"""
+"""
 Mangoview 分析 API — 对接 core/engine 真实分析引擎
 
 数据流：
@@ -11,14 +11,6 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-import sys
-import os
-
-# 确保 core/engine 模块可导入
-# analysis.py 位于 backend/app/api/v1/，需要上三层到达 backend/ 根目录
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-
-from core.engine import create_engine
 from core.engine.analysis.tianshi.cycle_matrix import (
     determine_economic_cycle,
     get_asset_allocation,

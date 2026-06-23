@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { getMacroData, MacroData } from '@/lib/api'
@@ -97,7 +97,7 @@ export default function CyclePage() {
                 别被噪音带着跑。看清市场，再出手。
               </h1>
               <p className="text-text-secondary text-[16px] mt-1 max-w-2xl leading-relaxed">
-                剥离情绪与传闻，用四周期嵌套与 9 维宏观数据定位当前市场的真实坐标。
+                剥离情绪与传闻，用四周期嵌套与核心宏观指标定位当前市场的真实坐标。
                 不预测明天，只看清当下。
               </p>
             </div>
@@ -173,12 +173,27 @@ export default function CyclePage() {
             </span>
             <h2 className="text-[28px] leading-[1.15] font-bold text-text-primary tracking-title">趋势验证</h2>
           </div>
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <div className="h-48 flex items-center justify-center bg-surface-alt rounded-lg border border-border-dashed">
-              <p className="text-text-muted text-sm">PMI / PPI / CPI 近 24 个月走势图（数据加载中...）</p>
+            <div className="rounded-xl border border-border bg-surface p-8">
+              {loading ? (
+                <div className="text-center py-4 text-text-muted text-sm">加载中...</div>
+              ) : macro && macro.indicators.length > 0 ? (
+                <div className="space-y-3">
+                  {macro.indicators.map((ind) => (
+                    <div key={ind.name} className="flex items-center justify-between px-4 py-2 bg-surface-alt rounded-lg">
+                      <span className="text-sm font-medium text-text-primary">{ind.name}</span>
+                      <span className="text-sm text-text-secondary">{ind.current}</span>
+                      <span className={ind.direction === 'up' ? 'text-success' : ind.direction === 'down' ? 'text-danger' : 'text-text-muted'}>
+                        {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '→'}
+                      </span>
+                      <span className="text-xs text-text-muted">{ind.source}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-text-muted mt-4">趋势图表需要更多历史数据点，功能开发中。</p>
+              ) : (
+                <div className="text-center py-4 text-text-muted text-sm">暂无数据</div>
+              )}
             </div>
-            <p className="text-xs text-text-muted mt-3">单点数据靠不住，连续趋势才有信号。</p>
-          </div>
         </section>
 
         <section className="mb-10">
