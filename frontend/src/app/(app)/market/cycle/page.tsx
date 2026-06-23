@@ -83,6 +83,26 @@ export default function CyclePage() {
     { key: '固定资产投资', label: '固投增速', explain: '工厂/基建/地产的投资热度', available: false },
   ]
 
+
+  // Pre-compute to avoid nested ternary triggering SWC parser issue
+  const trendContent = !macro ? null : macro.indicators.length === 0 ? null : (
+    <>
+      <div className="space-y-3">
+        {macro.indicators.map((ind) => (
+          <div key={ind.name} className="flex items-center justify-between px-4 py-2 bg-surface-alt rounded-lg">
+            <span className="text-sm font-medium text-text-primary">{ind.name}</span>
+            <span className="text-sm text-text-secondary">{ind.current}</span>
+            <span className={ind.direction === 'up' ? 'text-success' : ind.direction === 'down' ? 'text-danger' : 'text-text-muted'}>
+              {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '→'}
+            </span>
+            <span className="text-xs text-text-muted">{ind.source}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-text-muted mt-4">趋势图表需要更多历史数据点，功能开发中。</p>
+    </>
+  )
+
   return (
     <div className="min-h-screen bg-surface-alt">
       <main className="max-w-5xl mx-auto px-6 py-12">
@@ -176,20 +196,8 @@ export default function CyclePage() {
             <div className="rounded-xl border border-border bg-surface p-8">
               {loading ? (
                 <div className="text-center py-4 text-text-muted text-sm">加载中...</div>
-              ) : macro && macro.indicators.length > 0 ? (
-                <div className="space-y-3">
-                  {macro.indicators.map((ind) => (
-                    <div key={ind.name} className="flex items-center justify-between px-4 py-2 bg-surface-alt rounded-lg">
-                      <span className="text-sm font-medium text-text-primary">{ind.name}</span>
-                      <span className="text-sm text-text-secondary">{ind.current}</span>
-                      <span className={ind.direction === 'up' ? 'text-success' : ind.direction === 'down' ? 'text-danger' : 'text-text-muted'}>
-                        {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '→'}
-                      </span>
-                      <span className="text-xs text-text-muted">{ind.source}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-text-muted mt-4">趋势图表需要更多历史数据点，功能开发中。</p>
+              ) : trendContent ? (
+                trendContent
               ) : (
                 <div className="text-center py-4 text-text-muted text-sm">暂无数据</div>
               )}
