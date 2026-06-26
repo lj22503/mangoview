@@ -34,12 +34,13 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
 export interface MacroIndicator {
   name: string
-  current: number
-  previous: number
+  current: number | null
+  previous: number | null
   direction: string
-  percentile: number
+  percentile: number | null
   date: string
   source: string
+  available: boolean
 }
 
 export interface MacroData {

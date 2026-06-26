@@ -1,221 +1,175 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-东方财富数据源 - 个股行情 + 财报数据
-
-无需 API Key
-接口：https://push2.eastmoney.com/, https://datacenter.eastmoney.com/
+东方财富数据中心 API 宏观数据爬虫
+直接调用 datacenter-web 公开接口，替代 AKShare 宏观数据源。
 """
-
+import logging
 import requests
-from datetime import datetime
-from typing import Dict
-from data_layer.exceptions import ProviderError
+from typing import Dict, Optional, Any
+
+logger = logging.getLogger(__name__)
+
+BASE_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
+TIMEOUT = 10
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://data.eastmoney.com/",
+}
+
+# 各指标的 reportName 与取值字段映射
+REPORT_CONFIG = {
+    "PMI":  {"reportName": "RPT_ECONOMY_PMI",             "field": "MAKE_INDEX"},
+    "CPI":  {"reportName": "RPT_ECONOMY_CPI",             "field": "NATIONAL_SAME"},
+    "PPI":  {"reportName": "RPT_ECONOMY_PPI",             "field": "BASE_SAME"},
+    "GDP":  {"reportName": "RPT_ECONOMY_GDP",             "field": "SUM_SAME"},
+    "M2":   {"reportName": "RPT_ECONOMY_CURRENCY_SUPPLY", "field": "BASIC_CURRENCY_SAME"},
+    "社零": {"reportName": "RPT_ECONOMY_TOTAL_RETAIL",    "field": "RETAIL_TOTAL_SAME"},
+    "出口": {"reportName": "RPT_ECONOMY_CUSTOMS",         "field": "EXIT_BASE_SAME"},
+    "固投": {"reportName": "RPT_ECONOMY_ASSET_INVEST",    "field": "BASE_SAME"},
+}
 
 
-def _safe_float(value, default: float = 0.0) -> float:
-    """安全转换为 float"""
-    if value is None or value == '' or value == '--':
+class EastMoneyMacroFetcher:
+    """东方财富宏观数据获取器"""
+
+    @staticmethod
+    def _request(report_name: str) -> Optional[Dict[str, Any]]:
+        """通用请求方法，返回解析后的 JSON 或 None"""
+        params = {
+            "pageSize": 5,
+            "pageNumber": 1,
+            "sortColumns": "REPORT_DATE",
+            "sortTypes": -1,
+            "columns": "ALL",
+            "reportName": report_name,
+        }
+        try:
+            resp = requests.get(BASE_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("success") and data.get("result") and data["result"].get("data"):
+                return data
+            logger.warning("东方财富 API 返回空数据: reportName=%s", report_name)
+            return None
+        except requests.Timeout:
+            logger.error("东方财富 API 请求超时: reportName=%s", report_name)
+        except requests.RequestException as e:
+            logger.error("东方财富 API 请求失败: reportName=%s, error=%s", report_name, e)
+        except ValueError as e:
+            logger.error("东方财富 API JSON 解析失败: reportName=%s, error=%s", report_name, e)
+        return None
+
+    @staticmethod
+    def _parse_response(
+        data: Dict[str, Any], field: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        从 API 返回中提取最新一条记录的日期和值。
+        返回: {"date": "2026-05-01", "value": 8.6, "prev_value": 8.5, "unit": "%"}
+        """
+        rows = data["result"]["data"]
+        if not rows:
+            return None
+
+        latest = rows[0]
+        date = latest.get("REPORT_DATE", "")
+        value = _safe_float(latest.get(field))
+
+        prev_value = value  # 默认与前值相同
+        if len(rows) > 1:
+            prev_value = _safe_float(rows[1].get(field, value))
+
+        return {"date": str(date)[:10], "value": value, "prev_value": prev_value, "unit": "%"}
+
+    # ---- 各指标获取方法 ----
+
+    @classmethod
+    def fetch_pmi(cls) -> Optional[Dict[str, Any]]:
+        cfg = REPORT_CONFIG["PMI"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_cpi(cls) -> Optional[Dict[str, Any]]:
+        cfg = REPORT_CONFIG["CPI"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_ppi(cls) -> Optional[Dict[str, Any]]:
+        cfg = REPORT_CONFIG["PPI"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_gdp(cls) -> Optional[Dict[str, Any]]:
+        cfg = REPORT_CONFIG["GDP"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_m2(cls) -> Optional[Dict[str, Any]]:
+        cfg = REPORT_CONFIG["M2"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_social_retail(cls) -> Optional[Dict[str, Any]]:
+        """社零"""
+        cfg = REPORT_CONFIG["社零"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_export(cls) -> Optional[Dict[str, Any]]:
+        """出口"""
+        cfg = REPORT_CONFIG["出口"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_fixed_investment(cls) -> Optional[Dict[str, Any]]:
+        """固投"""
+        cfg = REPORT_CONFIG["固投"]
+        data = cls._request(cfg["reportName"])
+        return cls._parse_response(data, cfg["field"]) if data else None
+
+    @classmethod
+    def fetch_all(cls) -> Dict[str, Optional[Dict[str, Any]]]:
+        """一次性获取所有指标，返回 {指标key: 结果dict 或 None}"""
+        result = {}
+        fetchers = [
+            ("PMI", cls.fetch_pmi),
+            ("CPI", cls.fetch_cpi),
+            ("PPI", cls.fetch_ppi),
+            ("GDP", cls.fetch_gdp),
+            ("M2", cls.fetch_m2),
+            ("社零", cls.fetch_social_retail),
+            ("出口", cls.fetch_export),
+            ("固投", cls.fetch_fixed_investment),
+        ]
+        for key, func in fetchers:
+            try:
+                result[key] = func()
+            except Exception as e:
+                logger.error("fetch_all 中 %s 异常: %s", key, e)
+                result[key] = None
+        return result
+
+
+def _safe_float(val, default=0.0) -> float:
+    """安全转为 float，处理 None / NaN / 非数字字符串"""
+    if val is None:
         return default
     try:
-        return float(value)
+        f = float(val)
+        if f != f or f == float("inf") or f == float("-inf"):  # NaN / Inf
+            return default
+        return f
     except (ValueError, TypeError):
         return default
-
-
-def _to_secid(symbol: str) -> str:
-    """转换为东方财富 secid 格式（1.600519 / 0.000001）"""
-    code = symbol.upper().replace('.SH', '').replace('.SZ', '')
-    return f"1.{code}" if code.startswith('6') or code.startswith('1') else f"0.{code}"
-
-
-def _to_secucode(symbol: str) -> str:
-    """转换为东方财富 secucode 格式（600519.SH）"""
-    s = symbol.upper().strip()
-    if '.SH' in s or '.SZ' in s:
-        return s
-    return f"{s}.SH" if s.startswith('6') else f"{s}.SZ"
-
-
-def get_quote(symbol: str, timeout: int = 5) -> Dict:
-    """获取东方财富个股行情
-
-    Args:
-        symbol: 股票代码（如 600519.SH）
-        timeout: 超时秒数
-
-    Returns:
-        dict: 行情数据
-    """
-    secid = _to_secid(symbol)
-    url = "https://push2.eastmoney.com/api/qt/stock/get"
-    params = {
-        'secid': secid,
-        'fields': 'f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f55,f60',
-    }
-
-    try:
-        resp = requests.get(url, params=params, timeout=timeout)
-        resp.raise_for_status()
-        data = resp.json()
-
-        if data.get('rc') != 0 or not data.get('data'):
-            raise ProviderError('eastmoney', '返回数据为空或错误')
-
-        d = data['data']
-        price = (d.get('f43') or 0) / 100
-        prev_close = (d.get('f60') or 0) / 100
-        change = price - prev_close
-        change_pct = (d.get('f44') or 0) / 100 if d.get('f44') else (change / prev_close * 100 if prev_close > 0 else 0)
-
-        return {
-            'symbol': symbol,
-            'price': price,
-            'change': round(change, 4),
-            'change_percent': round(change_pct, 2),
-            'volume': d.get('f47', 0),
-            'turnover': d.get('f48', 0.0),
-            'market_cap': d.get('f55', 0.0),
-            'pe': (d.get('f49') or 0) / 100 if d.get('f49') else 0.0,
-            'pb': (d.get('f50') or 0) / 100 if d.get('f50') else 0.0,
-            'high': (d.get('f51') or 0) / 100,
-            'low': (d.get('f52') or 0) / 100,
-            'open': (d.get('f46') or 0) / 100,
-            'prev_close': prev_close,
-            'source': 'eastmoney',
-            'timestamp': datetime.now().isoformat(),
-        }
-    except requests.RequestException as e:
-        raise ProviderError('eastmoney', f'请求失败: {e}')
-    except (KeyError, ValueError, TypeError) as e:
-        raise ProviderError('eastmoney', f'解析失败: {e}')
-
-
-def get_financials(symbol: str, timeout: int = 5) -> Dict:
-    """获取东方财富财报数据
-
-    Args:
-        symbol: 股票代码
-        timeout: 超时秒数
-
-    Returns:
-        dict: 财报数据
-    """
-    secucode = _to_secucode(symbol)
-    url = "https://datacenter.eastmoney.com/securities/api/data/v1/get"
-    params = {
-        'reportName': 'RPT_F10_FINANCE_MAINFINADATA',
-        'columns': 'SECUCODE,SECURITY_CODE,REPORT_DATE,EPSJB,PARENTNETPROFIT,ROEJQ,OPERATE_INCOME_PK,NETCASH_OPERATE_PK',
-        'filter': f'(SECUCODE="{secucode}")',
-        'pageNumber': '1',
-        'pageSize': '4',
-        'sortTypes': '-1',
-        'sortColumns': 'REPORT_DATE',
-    }
-
-    try:
-        resp = requests.get(url, params=params, timeout=timeout)
-        resp.raise_for_status()
-        data = resp.json()
-
-        if not data.get('success') or not data.get('result') or not data['result'].get('data'):
-            raise ProviderError('eastmoney', f'财报数据为空：{data.get("message", "未知错误")}')
-
-        latest = data['result']['data'][0]
-
-        return {
-            'symbol': symbol,
-            'report_date': latest.get('REPORT_DATE', '')[:10] if latest.get('REPORT_DATE') else '',
-            'revenue': float(latest.get('OPERATE_INCOME_PK', 0) or 0),
-            'net_profit': float(latest.get('PARENTNETPROFIT', 0) or 0),
-            'roe': float(latest.get('ROEJQ', 0) or 0),
-            'eps': float(latest.get('EPSJB', 0) or 0),
-            'operating_cash_flow': float(latest.get('NETCASH_OPERATE_PK', 0) or 0),
-            'source': 'eastmoney',
-            'timestamp': datetime.now().isoformat(),
-        }
-    except requests.RequestException as e:
-        raise ProviderError('eastmoney', f'请求失败: {e}')
-    except (KeyError, ValueError, TypeError, IndexError) as e:
-        raise ProviderError('eastmoney', f'解析失败: {e}')
-
-
-if __name__ == '__main__':
-    import json
-    q = get_quote('600519.SH')
-    print(json.dumps(q, ensure_ascii=False, indent=2))
-
-
-# ============================================================
-# 行业板块行情（东方财富）
-# ============================================================
-
-def fetch_sector_performance(timeout: int = 10) -> Dict:
-    """
-    获取行业板块涨跌幅排行
-    
-    来源：东方财富行业板块
-    
-    Args:
-        timeout: 超时秒数
-    
-    Returns:
-        dict: {
-            'top_sectors': [{'name': '银行', 'change': 3.5}, ...],
-            'bottom_sectors': [{'name': '计算机', 'change': -5.2}, ...]
-        }
-    """
-    # 东方财富行业板块 API
-    url = "https://push2.eastmoney.com/api/qt/clist/get"
-    params = {
-        'pn': '1',
-        'pz': '100',
-        'po': '1',
-        'np': '1',
-        'ut': 'bd1d9dff06b34768984bfef77040bd9f',
-        'fltt': '2',
-        'invt': '2',
-        'fid': 'f3',
-        'fs': 'm:90 t:3',
-        'fields': 'f12,f14,f3,f2',
-    }
-    
-    try:
-        resp = requests.get(url, params=params, timeout=timeout, headers={
-            'User-Agent': 'Mozilla/5.0'
-        })
-        resp.raise_for_status()
-        data = resp.json()
-        
-        if data.get('data', {}).get('diff', None) is None:
-            return {'top_sectors': [], 'bottom_sectors': []}
-        
-        items = data['data']['diff']
-        
-        # 解析板块数据
-        sectors = []
-        for item in items:
-            name = item.get('f14', '')  # 板块名称
-            change = _safe_float(item.get('f3', 0))  # 涨跌幅
-            if name and change != 0:
-                sectors.append({
-                    'name': name,
-                    'change': change,
-                    'code': item.get('f12', ''),
-                })
-        
-        # 排序
-        sectors_sorted = sorted(sectors, key=lambda x: x['change'], reverse=True)
-        
-        return {
-            'top_sectors': sectors_sorted[:5],  # 前 5 领涨
-            'bottom_sectors': sectors_sorted[-5:],  # 后 5 领跌
-            'all_sectors': sectors_sorted,
-            'source': 'eastmoney_sector',
-            'timestamp': datetime.now().isoformat(),
-        }
-    
-    except requests.RequestException as e:
-        return {'top_sectors': [], 'bottom_sectors': [], 'error': str(e)}
-    except Exception as e:
-        return {'top_sectors': [], 'bottom_sectors': [], 'error': str(e)}
