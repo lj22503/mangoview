@@ -23,6 +23,8 @@ export default function EventsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const northAvailable = northMoney?.available !== false
+
   const gateEvents: SignalEvent[] = [
     {
       date: '06-13',
@@ -164,36 +166,42 @@ export default function EventsPage() {
           <h2 className="text-xl font-semibold text-text-primary mb-4">北向资金</h2>
           {loading ? (
             <div className="text-center py-8 text-text-muted text-sm">加载中...</div>
-          ) : northMoney ? (
+          ) : northAvailable ? (() => {
+            const nm = northMoney!
+            return (
             <div className="space-y-3">
               <div className="rounded-xl border border-border bg-surface p-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-muted">今日净买入</p>
-                  <p className={`text-2xl font-semibold ${northMoney.net_buy >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {northMoney.net_buy >= 0 ? '+' : ''}{northMoney.net_buy}亿
+                  <p className={`text-2xl font-semibold ${(nm.net_buy ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {(nm.net_buy ?? 0) >= 0 ? '+' : ''}{nm.net_buy ?? '—'}亿
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-text-muted">沪深300涨跌幅</p>
-                  <p className={`text-2xl font-semibold font-mono ${northMoney.hs300_change >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {northMoney.hs300_change >= 0 ? '+' : ''}{northMoney.hs300_change}%
+                  <p className={`text-2xl font-semibold font-mono ${(nm.hs300_change ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {(nm.hs300_change ?? 0) >= 0 ? '+' : ''}{nm.hs300_change ?? '—'}%
                   </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <p className="text-xs text-text-muted mb-1">买入成交额</p>
-                  <p className="text-lg font-semibold text-text-primary">{northMoney.buy_amount}亿</p>
+                  <p className="text-lg font-semibold text-text-primary">
+                    {nm.buy_amount != null ? `${nm.buy_amount.toFixed(2)}亿` : '—'}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <p className="text-xs text-text-muted mb-1">卖出成交额</p>
-                  <p className="text-lg font-semibold text-text-primary">{northMoney.sell_amount}亿</p>
+                  <p className="text-lg font-semibold text-text-primary">
+                    {nm.sell_amount != null ? `${nm.sell_amount.toFixed(2)}亿` : '—'}
+                  </p>
                 </div>
               </div>
-              <p className="text-xs text-text-muted">数据来源：沪深港交所 · 更新：{northMoney.updated_at}</p>
+              <p className="text-xs text-text-muted">数据来源：沪深港交所 · 更新：{nm.date || nm.updated_at}</p>
             </div>
-          ) : (
-            <div className="text-center py-8 text-text-muted text-sm">数据加载失败</div>
+            )})() : (
+            <div className="text-center py-8 text-text-muted text-sm">北向数据暂不可用（最近数据为 {northMoney?.date || '未知'}，已超过7天）</div>
           )}
         </section>
 

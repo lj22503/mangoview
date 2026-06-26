@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getMacroData, getNorthMoney, getIndustries, MacroData, NorthMoneyData, IndustryData } from '@/lib/api'
 
-const TOP_INDICATORS = ['GDP', 'CPI', 'PMI', '社融', 'PPI', '工业利润', '固定资产投资', '新开工面积', 'M2']
+const TOP_INDICATORS = ['GDP增速', 'CPI', 'PPI', '制造业PMI', 'M2增速', '社融增量', '社零增速', '出口增速', '固投增速']
 
 export default function MarketPage() {
   const [macro, setMacro] = useState<MacroData | null>(null)
@@ -20,8 +20,8 @@ export default function MarketPage() {
   }, [])
 
   const find = (name: string) => macro?.indicators.find(i => i.name === name)
-  const dir = (d: string) => d === 'up' ? '↑' : d === 'down' ? '↓' : '→'
-  const dirCls = (d: string) => d === 'up' ? 'text-success' : d === 'down' ? 'text-danger' : 'text-text-muted'
+  const dir = (d: string | undefined) => d === 'up' ? '↑' : d === 'down' ? '↓' : '—'
+  const dirCls = (d: string | undefined) => d === 'up' ? 'text-success' : d === 'down' ? 'text-danger' : 'text-text-muted'
 
   const top3 = industries?.industries
     ? [...industries.industries].sort((a, b) => b.net_profit_growth - a.net_profit_growth).slice(0, 3)
@@ -31,7 +31,10 @@ export default function MarketPage() {
     ? [...industries.industries].sort((a, b) => a.net_profit_growth - b.net_profit_growth).slice(0, 3)
     : []
 
-  const availableIndicators = TOP_INDICATORS.filter(name => find(name))
+  // 只显示可用的指标
+  const availableIndicators = TOP_INDICATORS
+    .map(name => find(name))
+    .filter((ind): ind is NonNullable<typeof ind> => ind != null && ind.available !== false)
 
   return (
     <div className="min-h-screen bg-surface-alt">
@@ -55,18 +58,19 @@ export default function MarketPage() {
             ) : macro && availableIndicators.length > 0 ? (
               <>
                 <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                  {availableIndicators.map(name => {
-                    const ind = find(name)!
+                  {availableIndicators.map(ind => {
                     return (
-                      <div key={name} className="text-center">
-                        <p className="text-xs text-text-muted mb-1">{name}</p>
+                      <div key={ind.name} className="text-center">
+                        <p className="text-xs text-text-muted mb-1">{ind.name}</p>
                         <p className="text-lg font-semibold text-text-primary">
-                          {ind.current}
+                          {ind.current ?? '—'}
                           <span className={`ml-1 text-sm ${dirCls(ind.direction)}`}>
                             {dir(ind.direction)}
                           </span>
                         </p>
-                        <p className="text-[11px] text-text-muted mt-0.5">分位 {ind.percentile}%</p>
+                        <p className="text-[11px] text-text-muted mt-0.5">
+                          {ind.percentile != null ? `分位 ${ind.percentile}%` : ''}
+                        </p>
                       </div>
                     )
                   })}
@@ -111,7 +115,7 @@ export default function MarketPage() {
                 })}
               </div>
             ) : (
-              <div className="text-xs text-text-muted py-4 flex-1">数据加载失败</div>
+              <div className="text-xs text-text-muted py-4 flex-1">北向数据暂不可用</div>
             )}
             <div className="mt-auto pt-3 border-t border-border-light flex justify-between items-center">
               <span className="text-xs text-mango-600 font-medium">查看完整定位</span>
@@ -153,7 +157,7 @@ export default function MarketPage() {
                 )}
               </div>
             ) : (
-              <div className="text-xs text-text-muted py-4 flex-1">数据加载失败</div>
+              <div className="text-xs text-text-muted py-4 flex-1">北向数据暂不可用</div>
             )}
             <div className="mt-auto pt-3 border-t border-border-light flex justify-between items-center">
               <span className="text-xs text-mango-600 font-medium">查看行业全景</span>
@@ -175,25 +179,27 @@ export default function MarketPage() {
               <div className="space-y-2 mb-3 flex-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">北向净买</span>
-                  <span className={`font-medium ${northMoney.net_buy >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {northMoney.net_buy >= 0 ? '+' : ''}{northMoney.net_buy}亿
+                  <span className={`font-medium ${(northMoney.net_buy ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {(northMoney.net_buy ?? 0) >= 0 ? '+' : ''}{northMoney.net_buy ?? '—'}亿
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">沪深300</span>
-                  <span className={`font-medium ${northMoney.hs300_change >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {northMoney.hs300_change >= 0 ? '+' : ''}{northMoney.hs300_change}%
+                  <span className={`font-medium ${(northMoney.hs300_change ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {(northMoney.hs300_change ?? 0) >= 0 ? '+' : ''}{northMoney.hs300_change ?? '—'}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">累计净买</span>
                   <span className="text-text-primary font-medium">
-                    {northMoney.cumulative_net_buy}亿
+                    {northMoney.available !== false && northMoney.cumulative_net_buy != null
+                      ? `${northMoney.cumulative_net_buy.toFixed(2)}亿`
+                      : '—'}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-text-muted py-4 flex-1">数据加载失败</div>
+              <div className="text-xs text-text-muted py-4 flex-1">北向数据暂不可用</div>
             )}
             <div className="mt-auto pt-3 border-t border-border-light flex justify-between items-center">
               <span className="text-xs text-mango-600 font-medium">查看信号扫描</span>

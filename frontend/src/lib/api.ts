@@ -66,11 +66,12 @@ export interface IndustryData {
 
 export interface NorthMoneyData {
   date: string
-  net_buy: number
-  buy_amount: number
-  sell_amount: number
-  cumulative_net_buy: number
-  hs300_change: number
+  net_buy: number | null
+  buy_amount: number | null
+  sell_amount: number | null
+  cumulative_net_buy: number | null
+  hs300_change: number | null
+  available: boolean
   updated_at: string
 }
 
