@@ -69,14 +69,14 @@ export default function MarketPage() {
                           </span>
                         </p>
                         <p className="text-[11px] text-text-muted mt-0.5">
-                          {ind.percentile != null ? `分位 ${ind.percentile}%` : ''}
+                          {ind.date ? `数据 ${ind.date.slice(0, 7)}` : ''}
                         </p>
                       </div>
                     )
                   })}
                 </div>
                 <div className="mt-4 pt-3 border-t border-border-light text-xs text-text-muted">
-                  数据来源：{macro.indicators[0]?.source || '国家统计局'} · 更新：{macro.updated_at}
+                  数据来源：{macro.indicators[0]?.source || '东方财富/国家统计局'}
                 </div>
               </>
             ) : (
