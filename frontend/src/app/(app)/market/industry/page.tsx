@@ -3,13 +3,6 @@
 import { useEffect, useState } from 'react'
 import { getIndustries, getMacroData, IndustryData, MacroData } from '@/lib/api'
 
-interface IndustryRank {
-  name: string
-  rank: string
-  nature: string
-  track: string
-}
-
 export default function IndustryPage() {
   const [industries, setIndustries] = useState<IndustryData | null>(null)
   const [macro, setMacro] = useState<MacroData | null>(null)
@@ -31,27 +24,6 @@ export default function IndustryPage() {
   const bottomGrowers = industries?.industries
     ? [...industries.industries].sort((a, b) => a.net_profit_growth - b.net_profit_growth).slice(0, 3)
     : []
-
-  const ranks: IndustryRank[] = [
-    {
-      name: '白酒',
-      rank: '品牌心智 + 社交刚需 + 产能稀缺',
-      nature: '社交货币属性，供给受限，长坡厚雪',
-      track: '社交习惯 / 产能释放 / 品牌稀释',
-    },
-    {
-      name: '新能源',
-      rank: '渗透率曲线 + 成本下降 + 政策容忍度',
-      nature: '成长期，需求驱动，技术路线未定',
-      track: '渗透率拐点 / 降本进度 / 贸易政策',
-    },
-    {
-      name: '房地产',
-      rank: '地段稀缺 + 金融属性 + 人口结构',
-      nature: '周期下行，出清阶段，金融属性主导',
-      track: '销售数据 / 融资政策 / 人口趋势',
-    },
-  ]
 
   const pmiInd = macro?.indicators.find(i => i.name === 'PMI')
 
@@ -252,58 +224,7 @@ export default function IndustryPage() {
           </div>
         </section>
 
-        <section className="mb-10">
-          <div className="flex items-start gap-4 mb-6">
-            <span className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-mango-500/20 text-mango-600 text-base font-bold">
-              3
-            </span>
-            <div>
-              <h2 className="text-[28px] leading-[1.15] font-bold text-text-primary tracking-title">行业秩</h2>
-              <p className="text-text-secondary text-sm mt-1">
-                降秩拆解——找到支撑一个行业所有现象的几根独立的力。
-              </p>
-            </div>
-          </div>
 
-          <div className="space-y-3">
-            {ranks.map(r => (
-              <div key={r.name} className="rounded-xl border border-border bg-surface p-5">
-                <div className="flex items-start gap-4">
-                  <span className="shrink-0 text-sm font-semibold text-text-primary min-w-[60px]">{r.name}</span>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <span className="text-xs text-text-muted">秩 = </span>
-                      <span className="text-sm text-text-primary font-medium">{r.rank}</span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-text-muted">性质：</span>
-                      <span className="text-sm text-text-secondary">{r.nature}</span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-text-muted">跟踪：</span>
-                      <span className="text-xs text-text-secondary">{r.track}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-text-muted mt-3">以上为示例输出。完整 31 个行业的降秩拆解，加入星球解锁。</p>
-        </section>
-
-        <section className="mb-10">
-          <div className="rounded-xl border-2 border-mango-200 bg-surface-warm p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-mango-500/20 text-mango-600 text-sm font-bold">🔒</span>
-              <h3 className="text-h3 text-text-primary">行业降秩排名</h3>
-            </div>
-            <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-              核心生成器把周期阶段、估值分位、增速、CR3 多维度压缩成一个排序——哪些行业在买入区、哪些在关注区、哪些在回避区。
-            </p>
-            <button className="btn-primary text-sm px-6">加入星球解锁</button>
-          </div>
-        </section>
 
         <section className="mb-10">
           <details className="rounded-xl border border-border bg-surface p-5 group">

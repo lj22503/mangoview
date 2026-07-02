@@ -172,7 +172,7 @@ export default function EventsPage() {
             <div className="space-y-3">
               <div className="rounded-xl border border-border bg-surface p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-muted">今日净买入</p>
+                  <p className="text-sm text-text-muted">今日{(nm.net_buy ?? 0) >= 0 ? '净买入' : '净卖出'}</p>
                   <p className={`text-2xl font-semibold ${(nm.net_buy ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
                     {(nm.net_buy ?? 0) >= 0 ? '+' : ''}{nm.net_buy ?? '—'}亿
                   </p>
@@ -188,13 +188,13 @@ export default function EventsPage() {
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <p className="text-xs text-text-muted mb-1">买入成交额</p>
                   <p className="text-lg font-semibold text-text-primary">
-                    {nm.buy_amount != null ? `${nm.buy_amount.toFixed(2)}亿` : '—'}
+                    {nm.buy_amount != null ? `${nm.buy_amount.toFixed(1)}亿` : '—'}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <p className="text-xs text-text-muted mb-1">卖出成交额</p>
                   <p className="text-lg font-semibold text-text-primary">
-                    {nm.sell_amount != null ? `${nm.sell_amount.toFixed(2)}亿` : '—'}
+                    {nm.sell_amount != null ? `${nm.sell_amount.toFixed(1)}亿` : '—'}
                   </p>
                 </div>
               </div>

@@ -71,6 +71,10 @@ export default function CyclePage() {
   ]
 
   // macroRows: 指标由 API 的 available 字段决定是否显示真实数据
+  const macroUnits: Record<string, string> = {
+    'GDP': '%', 'CPI': '%', 'PPI': '%', 'PMI': '', 'M2': '%',
+    '社融': '亿', '社零': '%', '出口': '%', '固投': '%',
+  }
   const macroRows = [
     { key: 'GDP', label: 'GDP 实际增速', explain: '经济在不在长，5% 算正常' },
     { key: 'CPI', label: 'CPI', explain: '物价涨了没' },
@@ -91,9 +95,9 @@ export default function CyclePage() {
         {macro.indicators.map((ind) => (
           <div key={ind.name} className="flex items-center justify-between px-4 py-2 bg-surface-alt rounded-lg">
             <span className="text-sm font-medium text-text-primary">{ind.name}</span>
-            <span className="text-sm text-text-secondary">{ind.current ?? '—'}</span>
+            <span className="text-sm text-text-secondary">{ind.current != null ? `${ind.current}${macroUnits[ind.name] ?? ''}` : '—'}</span>
             <span className={ind.direction === 'up' ? 'text-success' : ind.direction === 'down' ? 'text-danger' : 'text-text-muted'}>
-              {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '→'}
+              {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '—'}
             </span>
             <span className="text-xs text-text-muted">{ind.source}</span>
           </div>
@@ -155,7 +159,7 @@ export default function CyclePage() {
                         <tr key={key} className="border-t border-border-light">
                           <td className="px-5 py-3 text-sm font-medium text-text-primary">{label}</td>
                           <td className="px-5 py-3 text-right text-sm text-text-primary font-mono">
-                            {!isAvailable ? (<span className="text-text-muted">数据暂不可用</span>) : ind ? ind.current : '暂无'}
+                            {!isAvailable ? (<span className="text-text-muted">数据暂不可用</span>) : ind ? `${ind.current}${macroUnits[ind.name] ?? ''}` : '暂无'}
                           </td>
                           <td className="px-5 py-3 text-center text-sm">
                             {ind ? (
@@ -164,7 +168,7 @@ export default function CyclePage() {
                                 ind.direction === 'down' ? 'text-danger font-medium' :
                                 'text-text-muted'
                               }>
-                                {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '→'}
+                                {ind.direction === 'up' ? '↑' : ind.direction === 'down' ? '↓' : '—'}
                               </span>
                             ) : (
                               <span className="text-text-muted">—</span>

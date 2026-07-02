@@ -11,13 +11,18 @@ export default function MarketPage() {
   const [northMoney, setNorthMoney] = useState<NorthMoneyData | null>(null)
   const [industries, setIndustries] = useState<IndustryData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
+    setError(null)
     Promise.all([getMacroData(), getNorthMoney(), getIndustries()])
       .then(([m, n, i]) => { setMacro(m); setNorthMoney(n); setIndustries(i) })
-      .catch(console.error)
+      .catch(e => setError(e?.message || '数据加载失败'))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { fetchData() }, [])
 
   const find = (name: string) => macro?.indicators.find(i => i.name === name)
   const dir = (d: string | undefined) => d === 'up' ? '↑' : d === 'down' ? '↓' : '—'
@@ -96,7 +101,12 @@ export default function MarketPage() {
             <h2 className="text-h2 text-text-primary mb-3 group-hover:text-mango-600 transition-colors">
               现在是什么周期？
             </h2>
-            {loading ? (
+            {error ? (
+              <div className="text-xs text-danger py-4 flex-1">
+                {error}
+                <button onClick={fetchData} className="ml-2 text-mango-600 hover:underline">重试</button>
+              </div>
+            ) : loading ? (
               <div className="text-xs text-text-muted py-4 flex-1">加载中...</div>
             ) : macro ? (
               <div className="space-y-2 mb-3 flex-1">
@@ -131,7 +141,12 @@ export default function MarketPage() {
             <h2 className="text-h2 text-text-primary mb-3 group-hover:text-mango-600 transition-colors">
               钱在往哪跑？
             </h2>
-            {loading ? (
+            {error ? (
+              <div className="text-xs text-danger py-4 flex-1">
+                {error}
+                <button onClick={fetchData} className="ml-2 text-mango-600 hover:underline">重试</button>
+              </div>
+            ) : loading ? (
               <div className="text-xs text-text-muted py-4 flex-1">加载中...</div>
             ) : industries && top3.length > 0 ? (
               <div className="space-y-2 mb-3 flex-1">
@@ -157,7 +172,7 @@ export default function MarketPage() {
                 )}
               </div>
             ) : (
-              <div className="text-xs text-text-muted py-4 flex-1">北向数据暂不可用</div>
+              <div className="text-xs text-text-muted py-4 flex-1">暂无行业数据</div>
             )}
             <div className="mt-auto pt-3 border-t border-border-light flex justify-between items-center">
               <span className="text-xs text-mango-600 font-medium">查看行业全景</span>
@@ -178,7 +193,7 @@ export default function MarketPage() {
             ) : northMoney ? (
               <div className="space-y-2 mb-3 flex-1">
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">北向净买</span>
+                  <span className="text-text-muted">北向{(northMoney.net_buy ?? 0) >= 0 ? '净买' : '净卖'}</span>
                   <span className={`font-medium ${(northMoney.net_buy ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
                     {(northMoney.net_buy ?? 0) >= 0 ? '+' : ''}{northMoney.net_buy ?? '—'}亿
                   </span>
@@ -193,7 +208,7 @@ export default function MarketPage() {
                   <span className="text-text-muted">累计净买</span>
                   <span className="text-text-primary font-medium">
                     {northMoney.available !== false && northMoney.cumulative_net_buy != null
-                      ? `${northMoney.cumulative_net_buy.toFixed(2)}亿`
+                      ? `${northMoney.cumulative_net_buy.toFixed(0)}亿`
                       : '—'}
                   </span>
                 </div>
