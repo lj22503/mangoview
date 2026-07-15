@@ -5,8 +5,8 @@ import '../styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MangoView - 自上而下，看清每一笔投资',
-  description: '基于经典框架的 SaaS 投资辅助工具',
+  title: 'MangoView - 一笔好决策，只需要看三件事',
+  description: '时机对不对、公司行不行、自己有没有犯傻。Mangoview 用三层框架帮你把每一笔决策拆开来看清。',
   icons: { icon: '/favicon.svg' },
 }
 
