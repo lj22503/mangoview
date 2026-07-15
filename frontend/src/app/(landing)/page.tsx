@@ -9,21 +9,21 @@ export default function Home() {
       <section className="py-32 md:py-40 bg-surface">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h1 className="text-[64px] leading-[1.05] font-bold text-text-primary tracking-hero">
-            看盘最少的人，<br />赚得最多
+            一笔好决策，<br />只需要看三件事
           </h1>
           <p className="text-[17px] text-text-secondary mt-6 max-w-lg mx-auto leading-relaxed">
-            他们不看 K 线。他们看周期在哪、行业如何、配置对不对。
+            <span className="text-mango-600 font-semibold">时机</span>对不对、<span className="text-mango-600 font-semibold">公司</span>行不行、<span className="text-mango-600 font-semibold">自己</span>有没有犯傻。
           </p>
-          <p className="text-[17px] text-text-secondary max-w-lg mx-auto leading-relaxed">
-            这叫<span className="text-mango-600 font-semibold">三层决策框架</span>——自上而下，每一步都有依据。
+          <p className="text-[17px] text-text-secondary max-w-lg mx-auto leading-relaxed mt-3">
+            Mangoview 用三层框架帮你把每一笔决策拆开来看清。
           </p>
           <div className="flex items-center justify-center gap-4 mt-10">
-            <Link href="/about" className="btn-primary text-base px-6 h-11">
-              了解框架
+            <Link href="/market" className="btn-primary text-base px-6 h-11">
+              开始分析
               <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
-            <Link href="/market" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-              直接试试
+            <Link href="/about" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
+              了解框架
             </Link>
           </div>
         </div>
@@ -33,56 +33,64 @@ export default function Home() {
       <section className="py-24 bg-surface-alt">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-display text-text-primary tracking-title">不看盘的人在看什么</h2>
+            <h2 className="text-display text-text-primary tracking-title">一笔好决策看三件事</h2>
             <p className="text-text-secondary mt-2 text-[16px]">
-              三层决策，每层回答一个问题
+              自上而下，每一步都有依据
             </p>
           </div>
 
           <div className="space-y-4">
-            {/* 第 1 层：数据层 */}
+
+            {/* 时机对不对 */}
             <div className="rounded-xl border border-border bg-surface p-7 flex gap-5 items-start group hover:border-mango-400 transition-colors">
-              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-mango-500 text-white text-lg font-bold">
-                1
+              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-surface-alt text-2xl">
+                🕐
               </span>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[20px] font-semibold text-text-primary mb-1">现在是什么周期？</h3>
-                <p className="text-sm text-text-secondary mb-4">宏观周期 · 行业景气 · 资金流向</p>
+                <h3 className="text-[20px] font-semibold text-text-primary mb-1">时机对不对？</h3>
+                <p className="text-sm text-text-secondary mb-1">现在该不该出手。</p>
+                <p className="text-xs text-text-muted mb-4">经济周期 · 估值水位 · 资金面</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {['PMI', 'CPI', 'GDP', 'PPI', '社融'].map(t => (
+                  {['PMI', 'CPI', 'M2', '北向资金'].map(t => (
                     <span key={t} className="px-2.5 py-1 bg-surface-alt border border-border-light rounded-md text-[11px] text-text-muted font-mono">{t}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* 第 2 层：工具层 */}
+            {/* 公司行不行 */}
             <div className="rounded-xl border border-border bg-surface p-7 flex gap-5 items-start group hover:border-mango-400 transition-colors">
-              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-mango-500/15 text-mango-600 text-lg font-bold">
-                2
+              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-surface-alt text-2xl">
+                🏢
               </span>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[20px] font-semibold text-text-primary mb-1">行业机会在哪？</h3>
-                <p className="text-sm text-text-secondary mb-4">周期定位 · 行业分析 · 估值评估</p>
+                <h3 className="text-[20px] font-semibold text-text-primary mb-1">公司行不行？</h3>
+                <p className="text-sm text-text-secondary mb-1">这家公司值不值得投。</p>
+                <p className="text-xs text-text-muted mb-4">行业景气 · 竞争格局 · 估值分位</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {['周期定位', '行业分析', '价值评估'].map(t => (
+                  {['行业分析', '护城河', '估值', '增速'].map(t => (
                     <span key={t} className="px-2.5 py-1 bg-surface-alt border border-border-light rounded-md text-[11px] text-text-muted">{t}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* 第 3 层：配置层 */}
-            <div className="rounded-xl border border-border bg-surface p-7 flex gap-5 items-start group hover:border-mango-400 transition-colors">
-              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-mango-500/8 text-mango-600 text-lg font-bold">
-                3
+            {/* 自己有没有犯傻 — 高亮 */}
+            <div className="rounded-xl border border-mango-400 bg-surface-warm p-7 flex gap-5 items-start group hover:border-mango-500 transition-colors relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-mango-500/5 rounded-bl-[40px]" />
+              <span className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-mango-100 text-2xl">
+                👤
               </span>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[20px] font-semibold text-text-primary mb-1">钱该放在哪？</h3>
-                <p className="text-sm text-text-secondary mb-4">资产配置 · 机会追踪 · 风险控制</p>
+                <h3 className="text-[20px] font-semibold text-text-primary mb-1">
+                  自己有没有犯傻？
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-mango-500/10 text-mango-600 text-[11px] font-medium">核心差异化</span>
+                </h3>
+                <p className="text-sm text-text-secondary mb-1">最大的对手从来不是市场，是你自己。</p>
+                <p className="text-xs text-text-muted mb-4">交易频率 · 情绪指数 · 偏差扫描</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {['资产配置', '决策清单', '偏差检测'].map(t => (
-                    <span key={t} className="px-2.5 py-1 bg-surface-alt border border-border-light rounded-md text-[11px] text-text-muted">{t}</span>
+                  {['持仓分析', '偏差检测', '决策日志'].map(t => (
+                    <span key={t} className="px-2.5 py-1 bg-mango-100 border border-mango-200 rounded-md text-[11px] text-mango-700">{t}</span>
                   ))}
                 </div>
               </div>

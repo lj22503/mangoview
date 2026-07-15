@@ -1,14 +1,84 @@
 """配置中心 — 对接 analysis engine 真实周期数据"""
+from typing import Dict, Any, List, Optional
 from fastapi import APIRouter
+from pydantic import BaseModel
 from ...models.schemas import PortfolioRequest
 from core.engine.analysis.tianshi.cycle_matrix import (
     determine_economic_cycle,
     get_asset_allocation,
 )
 from core.engine.data_fetcher import fetch_for_analysis
+from core.engine.skill_interface import get_skill
+# 导入即触发 @skill 装饰器自动注册到 _skill_registry
+from core.engine.skills.position_diagnosis import PositionDiagnosisSkill
 from .analysis import transform_indicators_to_macro_data
 
 router = APIRouter(prefix="/v1/portfolio", tags=["portfolio"])
+
+
+class PositionItem(BaseModel):
+    """单条持仓"""
+    code: str
+    name: Optional[str] = ""
+    weight: float  # 权重（百分比，如 30 表示 30%）
+    industry: Optional[str] = "其他"
+
+
+class PositionDiagnosisRequest(BaseModel):
+    """持仓诊断请求"""
+    positions: List[PositionItem]
+
+
+def _port_diagnosis_summary(skill_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    把 skill.execute 返回的复杂结果简化为 C 端 investbuddy 期望的字段
+
+    investbuddy 的 mangofolio-position-diagnosis 期望：
+      { concentration: str, correlation: dict, suggestions: list }
+
+    mangoview skill 返回更完整：{concentration:{...}, correlation:{...}, suggestions:[...], ...}
+    这里做一层字段平铺 + 关键状态字符串。
+    """
+    concentration = skill_result.get("concentration", {})
+    correlation = skill_result.get("correlation", {})
+
+    # 把集中度状态拼成 investbuddy 期望的字符串
+    single_status = concentration.get("single_status", "未知")
+    industry_status = concentration.get("industry_status", "未知")
+    concentration_text = f"单一持仓:{single_status} | 行业集中度:{industry_status}"
+
+    return {
+        "code": 0,
+        "data": {
+            "concentration": concentration_text,
+            "concentration_detail": concentration,
+            "correlation": correlation,
+            "valuation": skill_result.get("valuation", {}),
+            "suggestions": skill_result.get("suggestions", []),
+            "data_source": skill_result.get("data_source", ""),
+            "confidence_level": skill_result.get("confidence_level", "A"),
+            "disclaimer": skill_result.get("disclaimer", ""),
+        },
+    }
+
+
+@router.post("/diagnose")
+async def diagnose_positions(req: PositionDiagnosisRequest):
+    """
+    持仓诊断 — 调 PositionDiagnosisSkill（基于四专家框架）
+
+    输入：positions 列表 [{code, name, weight, industry}]
+    输出：concentration（集中度）+ correlation（相关性）+ suggestions（调仓建议）
+    """
+    skill = get_skill("position_diagnosis")
+    if skill is None:
+        return {"code": 500, "error": "position_diagnosis skill 未注册"}
+
+    # 转换 pydantic → dict
+    positions = [p.model_dump() for p in req.positions]
+
+    result = skill({"positions": positions})
+    return _port_diagnosis_summary(result)
 
 RISK_ADJUST = {
     "conservative": {"equity": "underweight", "bond": "overweight"},

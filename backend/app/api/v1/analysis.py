@@ -16,6 +16,7 @@ from core.engine.analysis.tianshi.cycle_matrix import (
     get_asset_allocation,
     CYCLE_MATRIX,
 )
+from core.engine import create_engine
 from core.engine.data_fetcher import fetch_for_analysis
 from core.engine.middleware.tier_model import UserTier
 
