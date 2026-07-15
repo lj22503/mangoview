@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { RefreshCw, Building2, Zap, ChevronRight, Check } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 /**
  * 三层六步框架的步骤定义
@@ -23,7 +24,7 @@ interface StepDefinition {
   layerName: string           // 层名：天时 / 地利 / 人和
   layerLabel: string           // 层标签短称
   subSteps: string[]           // 该层包含的六步中子步骤
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
+  icon: LucideIcon
   /** 这一步看什么 — 一句话定位 */
   whatYouSee: string
   /** 为什么先看这一步 — 框架逻辑 */
