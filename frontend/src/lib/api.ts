@@ -1,4 +1,4 @@
-﻿const API_BASE = '/api'
+﻿const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8003'
 const isDev = process.env.NODE_ENV === 'development'
 
 interface ApiResponse<T> {
