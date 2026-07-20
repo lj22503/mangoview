@@ -1,0 +1,86 @@
+# llms.txt — Mangoview
+
+## Project Overview
+
+Mangoview is an investment decision-support tool that answers three questions for any decision: 时机对不对 (Is the timing right? / 天时) · 公司行不行 (Is the company solid? / 地利) · 自己有没有犯傻 (Are you being stupid? / 人和). Built on a 3-layer 6-step analysis engine + signal system + multi-source data collectors + FastAPI + Next.js 14.
+
+Mission: Turn subjective investment reasoning into a structured, auditable pipeline.
+
+## Core Pages
+
+- [README](https://github.com/lj22503/mangoview) — Full documentation (Chinese)
+- [README_EN](https://github.com/lj22503/mangoview/blob/main/README_EN.md) — English documentation
+- [DESIGN.md](https://github.com/lj22503/mangoview/blob/main/DESIGN.md) — System design
+- [SPEC.md](https://github.com/lj22503/mangoview/blob/main/docs/SPEC.md) — Product spec
+- [PROGRESS.md](https://github.com/lj22503/mangoview/blob/main/PROGRESS.md) — Project progress
+
+## What it is
+
+**One-liner**: A structured investment decision engine that answers three questions — timing, company quality, and self-bias check.
+
+**Core value**:
+- Structure: every analysis goes through 3 layers (天时/地利/人和) × 6 steps
+- Multi-source: AKShare / 东方财富 / 天天基金 / 新浪 / tushare
+- Bias-aware: dedicated 人和 (self-bias) layer
+- Auditable: every decision logged with reasoning chain
+
+**Target users**: Individual investors who want disciplined, structured decision-making.
+
+## 3-Layer × 6-Step Analysis Engine
+
+### Layer 1: 天时 (Timing)
+- Macro cycle analysis (Merrill clock / Kondratieff)
+- Industry rotation signals
+- Market sentiment indicators
+
+### Layer 2: 地利 (Company)
+- Fundamentals: revenue / profit / cash flow
+- Competitive position
+- Valuation (DCF / relative)
+
+### Layer 3: 人和 (Self-bias)
+- Loss aversion detection
+- Herding / FOMO identification
+- Overconfidence check
+- Decision history review
+
+## 6-Step Pipeline
+
+1. **Collect** data from multi-source providers
+2. **Filter** signal noise
+3. **Judge** direction (long / short / wait)
+4. **Analyze** company fundamentals
+5. **Self-check** bias
+6. **Decide** with audit trail
+
+## Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Backend | FastAPI + Python 3.11+ |
+| Frontend | Next.js 14 + Tailwind + Recharts/ECharts |
+| Data | AKShare / 东方财富 / 天天基金 / 新浪 / tushare |
+| Knowledge | investment-framework-skill (submodule) |
+| Test | 86+ unit tests in `backend/core/engine/tests/` |
+
+## Installation
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+cp .env.example .env  # fill in API keys
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+## Search Keywords
+
+investment decision, 3-layer analysis, 天时地利人和, bias detection, fund analysis, A股分析, market data, AKShare, tushare, signal system, decision audit, FastAPI investment tool, Next.js finance app, quantitative analysis, RAG, MCP.
+
+## Contact
+
+GitHub Issues: https://github.com/lj22503/mangoview/issues

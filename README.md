@@ -1,7 +1,21 @@
 # 🏛️ Mangoview — 一笔好决策，只需要看三件事
 
 > **一句话定位**：一笔好决策，只需要看三件事 — 时机对不对、公司行不行、自己有没有犯傻。
-> **Slogan**：一笔好决策，只需要看三件事
+
+<p align="center">
+  <a href="#快速开始"><img src="https://img.shields.io/badge/3_层_6_步-分析引擎-d6a52e?style=for-the-badge" alt="3 层 6 步"/></a>
+  <a href="README_EN.md"><img src="https://img.shields.io/badge/English-README-blue?style=for-the-badge" alt="English README"/></a>
+  <a href="llms.txt"><img src="https://img.shields.io/badge/llms.txt-AI_Ready-green?style=for-the-badge" alt="llms.txt"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"/></a>
+  <a href="#核心能力"><img src="https://img.shields.io/badge/FastAPI_+_Next.js-purple?style=for-the-badge" alt="FastAPI + Next.js"/></a>
+</p>
+
+<p align="center">
+  <strong>天时 × 地利 × 人和 · 时机对不对 × 公司行不行 × 自己有没有犯傻</strong>
+</p>
+
+<!-- TODO: 添加 ≤10 秒的演示 GIF，提升 50% 转化率（见 GitHub 增长策略报告） -->
+
 > **组成**：分析引擎 + 数据采集 + FastAPI + Next.js 前端 + Skills 知识库
 
 ---
