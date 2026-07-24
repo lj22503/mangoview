@@ -1,9 +1,9 @@
 """MangoView API — 应用入口"""
 import sys
 import os
+import logging
 
 _BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_BACKEND_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if _BACKEND_ROOT not in sys.path:
     sys.path.insert(0, _BACKEND_ROOT)
 
@@ -12,7 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.api.v1 import market, tools, portfolio, reports, analysis
-from app.models.database import init_db
+from app.models.database import init_db, SessionLocal, IndustryInfo
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="MangoView API",
@@ -58,6 +60,20 @@ async def startup_event():
     os.makedirs(os.environ.get("MANGOVIEW_DATA_DIR", "data"), exist_ok=True)
     # 初始化数据库
     init_db()
+
+    # 种子数据：行业信息（首次部署 / 重建后自动填充）
+    try:
+        db = SessionLocal()
+        existing = db.query(IndustryInfo).count()
+        db.close()
+        if existing == 0:
+            from scripts.seed_industries import seed_db
+            seed_db()
+            logger.info("种子数据填充完成 (industry)")
+        else:
+            logger.info("行业数据已存在，跳过种子填充")
+    except Exception as e:
+        logger.warning("种子数据填充失败: %s", e)
 
 
 if __name__ == "__main__":

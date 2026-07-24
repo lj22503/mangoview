@@ -249,7 +249,7 @@ def fetch_north_money(db: Session) -> dict:
             "sell_amount": sell_amount,
             "cumulative_net_buy": latest.cumulative_net_buy or 0.0,
             "hs300_change": latest.hs300_change or 0.0,
-            "available": _is_fresh_ndays(str(latest.date), days=7),
+            "available": _is_fresh_ndays(str(latest.date), days=30),
             "updated_at": datetime.now().isoformat()
         }
 
@@ -270,7 +270,7 @@ def fetch_north_money(db: Session) -> dict:
                         "sell_amount": safe_float(row.get('卖出成交额')),
                         "cumulative_net_buy": safe_float(row.get('历史累计净买额')),
                         "hs300_change": safe_float(row.get('沪深300-涨跌幅')),
-                        "available": _is_fresh_ndays(date_str, days=7),
+                        "available": _is_fresh_ndays(date_str, days=30),
                         "updated_at": datetime.now().isoformat()
                     }
     except Exception:
