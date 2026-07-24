@@ -1,0 +1,10 @@
+name: Keep Render Alive
+on:
+  schedule:
+    - cron: '*/13 * * * *'  # 每 13 分钟 ping 一次
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: curl -s -o /dev/null -w "%{http_code}" https://mangoview-backend.onrender.com/api/health
