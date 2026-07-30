@@ -204,4 +204,68 @@ brainstorming → writing-plans → subagent-dev → tdd → code-review → deb
 
 ---
 
-> 最后更新：2026-06-23
+## neat-freak 收尾 — 2026-07-30
+
+> 本段由 neat-freak 收尾执行，承接 06-23 之后的真实状态
+
+### 06-23 → 07-30 之间的 commits（PROGRESS 漏记 37 天）
+
+| commit | 日期 | 摘要 |
+|--------|------|------|
+| e24d822 | 2026-07 前后 | A1: 落地新定位（同步 CLAUDE.md / README） |
+| 9f19fce | 同上 | README 加视觉化徽章 + LICENSE + 英文 README + llms.txt |
+| 9aaaac9 | 同上 | deploy: Render backend deployment config |
+| 6e8ea4d | 同上 | revert: 回退 api.ts + next.config.js 到 91a03d3（修复生产环境 API 404） |
+| 656474b | 同上 | docs: 移除内部 TODO 注释 |
+| 2e523df | 同上 | ci: keep Render alive with 13min ping |
+| 5a34c22 | 同上 | fix: 启动时自动填充行业种子数据 + 北向资金新鲜度放宽到 30 天 |
+| d3932f0 | 2026-07-24 | neat-freak: mangoview 知识收尾 2026-07-24 |
+
+### 部署真实状态（07-30 补记，含修正）
+
+- **后端代码部署**：Render Singapore free plan（render.yaml 配置 + autoDeploy + 13min ping 保活）
+- **前端代码部署**：Vercel（vercel.json 仅 buildCommand + outputDirectory）
+- **用户访问入口**：`view.mangofolio.com` / `api.mangofolio.com`（两域名仍在用，疑经 Cloudflare Tunnel 转返 Render）；未在仓库内确认 Tunnel 配置位置，待下轮查
+- **历史描述「阿里云 + PM2 + Cloudflare Tunnel」**：PM2 + 直接云主机可能已不在用，但 Cloudflare Tunnel ↔ 域名 这一段**仍在运行**，07-30 neat-freak 初版曾误判「全弃」，已在此修正
+
+### 本轮（07-30）执行项（来自 07-24 neat-freak 报告 §五）
+
+| 项 | 动作 | 状态 |
+|----|------|------|
+| `topics-suggested.md` | 删除（Topics + Description UI 操作已不在本仓库维护） | ✅ |
+| `AGENTS.md` 第 5 行定位 | 同步到 CLAUDE.md 当前版「一笔好决策，三件事」 | ✅ |
+| `docs/原始材料/` 加 gitignore | ⚠️ 已 tracked，本轮仅 .gitignore 加规则（新建文件生效），如需 untrack 走 `git rm --cached` | ⚠️ |
+| `INVESTMENT_DASHBOARD_PLAN_V1` V1/V2 排查 | git log 显示**只有 V1**，从未出过 V2；`_V1` 后缀是历史命名 | 已确认 |
+| `skills/investment-framework-skill/` | `mode 160000 gitlink` 已存在但 `.gitmodules` 缺失 — **处置见下方 待决策** | 待决策 |
+
+### 待决策（skills/ submodule）— 已处置
+
+`skills/investment-framework-skill` 在 git tree 中是 gitlink（mode 160000，commit 27f7ac9），但 `.gitmodules` 文件不存在 —— 全 clone 此 repo 时该目录是空的。
+
+**07-30 用户决策**：恢复 `.gitmodules` 指 `git@github.com:lj22503/investment-framework-skill.git`。
+- 已创建仓库根 `.gitmodules` 文件（含 `[submodule]` 配置 + path + url）
+- 下次 clone 会触发 submodule 自动初始化
+
+### 07-30 复核 07-24 §六 遗留
+
+| # | 07-24 遗留项 | 本轮处置 |
+|---|-------------|---------|
+| 1 | docs/inventory/ 19 个设计文档未逐个审 | ⏳ 未审，留至下轮 neat-freak |
+| 2 | 5 份根 MD 未读全文（API_REVIEW / DESIGN / SYSTEM_PROMPT / REVIEW-FINDINGS / INTEGRATION_PLAN） | ⏳ 未审，留至下轮 |
+| 3 | render.yaml / vercel.json 配置未读全文 | ✅ 07-30 读全（已并入「部署真实状态」段） |
+| 4 | git submodule 实际状态未验证 | ✅ 已验证并修复（见上） |
+| 5 | `.impeccable/` 历史残留未处置 | ✅ 加 `.gitignore`（hook.cache.json 27B 自动生成缓存，未 tracked，避免 git status 污染） |
+| 6 | `check-status.sh` / `kill-old.ps1` 工具脚本是否仍需要 | ⚠️ **check-status.sh 保留**（用户澄清 view/api.mangofolio.com 域名仍在用，Tunnel 可能反向代理到 Render，本轮不删）；`kill-old.ps1` 保留（清理本地 8003 端口的 uvicorn 残留进程，仍有用） |
+
+### 上轮（07-24）报告遗留
+
+- `docs/inventory/` 19 个设计文档尚未逐个审计
+- `AGENTS.md / API_REVIEW.md / DESIGN.md / SYSTEM_PROMPT.md / REVIEW-FINDINGS.md / INTEGRATION_PLAN.md` 6 份根 MD 全文未审
+- `render.yaml` region=singapore + free plan 是否仍符合后续需求未确认
+- Cloudflare Tunnel 配置位置（推断在外部 / Cloudflare dashboard / 某台机器），本仓库未排查
+- check-status.sh 真假死代码判定（依赖上面的 Tunnel/域名 真实流向）
+
+---
+
+*neat-freak 收尾按 07-24 报告 §五 执行清单 + §六 遗留 4 项处置，**用户决策 2 次**：恢复 .gitmodules / 保留 check-status.sh。共动 7 个文件：`.gitmodules`（新建）/ `.gitignore` / `AGENTS.md` / `PROGRESS.md` / `删除 topics-suggested.md` / 改 PROGRESS 段落 / 加 .impeccable ignore。*
+> 最后更新：2026-07-30

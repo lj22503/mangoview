@@ -1,0 +1,3 @@
+[submodule "skills/investment-framework-skill"]
+	path = skills/investment-framework-skill
+	url = git@github.com:lj22503/investment-framework-skill.git

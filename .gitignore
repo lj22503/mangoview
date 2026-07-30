@@ -39,3 +39,9 @@ backend/core/engine/.pytest_cache/
 
 # Data (SQLite)
 data/*.db
+
+# 临时草稿 / 脑暴素材（不参与构建）
+docs/原始材料/
+
+# 工具自动生成的缓存（非源码）
+.impeccable/
