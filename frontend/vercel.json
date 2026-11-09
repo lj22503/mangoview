@@ -5,17 +5,17 @@
     {
       "source": "/portfolio/:path*",
       "destination": "https://forge.mangofolio.com/portfolio/:path*",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/portfolio",
       "destination": "https://forge.mangofolio.com/portfolio",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/:path*",
       "destination": "https://forge.mangofolio.com/",
-      "permanent": true
+      "statusCode": 301
     }
   ]
 }
