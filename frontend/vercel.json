@@ -1,4 +1,21 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "redirects": [
+    {
+      "source": "/portfolio/:path*",
+      "destination": "https://forge.mangofolio.com/portfolio/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio",
+      "destination": "https://forge.mangofolio.com/portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://forge.mangofolio.com/",
+      "permanent": true
+    }
+  ]
 }
